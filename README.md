@@ -1,110 +1,121 @@
-# TaskFlow - Gestor de Tareas
+# Gestor de Tareas Avanzado (TaskFlow)
 
-[![Java Version](https://img.shields.io/badge/Java-17%2B-orange.svg?style=flat-square)](#)
-[![UI Framework](https://img.shields.io/badge/UI-Java%20Swing-green.svg?style=flat-square)](#)
-[![Persistence](https://img.shields.io/badge/Persistence-JSON%20%28Gson%29-blue.svg?style=flat-square)](#)
-[![Architecture](https://img.shields.io/badge/Architecture-Monolithic%20%2F%20Junior%20Friendly-purple.svg?style=flat-square)](#)
+Este es un sistema de gestión de tareas diferente, rediseñado desde cero para aplicar conceptos avanzados de Programación Orientada a Objetos (POO), principios SOLID, uso de interfaces para abstraer la persistencia y conexión a base de datos mediante JDBC.
 
-> TaskFlow es una plataforma de gestión de tareas inspirada en Jira y Trello, diseñada para ofrecer un flujo de trabajo agilizado mediante un tablero Kanban interactivo, organización por prioridades y una vista centralizada de tareas asignadas por usuario.
+## Arquitectura y Principios Aplicados
 
----
-
-## Stack Tecnológico
-
-El proyecto utiliza tecnologías nativas de la plataforma Java junto con librerías estándar para garantizar portabilidad, ligereza y facilidad de mantenimiento:
-
-| Componente | Tecnología / Librería | Propósito |
-| :--- | :--- | :--- |
-| **Lenguaje de Programación** | Java 17 (JDK) | Desarrollo orientado a objetos claro y estructurado. |
-| **Interfaz de Usuario** | Java Swing / AWT | Renderizado de componentes gráficos nativos (`JFrame`, `JTabbedPane`, `JPanel`, `JOptionPane`). |
-| **Persistencia de Datos** | Google Gson 2.10+ | Serialización y deserialización de listas Java a archivos en formato JSON. |
-| **Diseño y Maquetación** | Layout Managers (`BorderLayout`, `GridLayout`, `BoxLayout`) | Organización limpia y responsiva de elementos en pantalla. |
-| **Control de Versiones** | Git + Conventional Commits | Historial de cambios limpio y profesional. |
+El proyecto fue construido tomando en cuenta:
+1. **POO y Abstracciones**: Uso de interfaces DAO (`IGenericDAO`, `ITaskDAO`, `IUserDAO`) para desacoplar la lógica de negocio de la implementación técnica de acceso a datos.
+2. **SOLID (Principio de Inversión de Dependencias)**: El núcleo del sistema (ej. `TaskManager`) no depende de clases concretas, sino de abstracciones (interfaces), lo cual hace al sistema escalable y fácil de mantener.
+3. **JDBC**: Implementación segura de persistencia con bases de datos MySQL, manejando transacciones y cierres de recursos adecuadamente.
 
 ---
 
-## Arquitectura del Sistema
+## 1. Flujo Conceptual y Modelo Entidad-Relación (E-R)
 
-La arquitectura ha sido diseñada de forma directa para facilitar la explicación y defensa en entornos académicos:
+### Flujo Conceptual del Sistema
+![Flujo Conceptual](img/image.png)
+
+### Modelo Entidad-Relación (E-R) / Lógico
+El sistema gestiona Tareas (`Tasks`), Usuarios (`Users`), Estados (`TaskStatus`) y Prioridades (`Priority`). El modelo está diseñado y normalizado hasta la Cuarta Forma Normal (4NF) para asegurar integridad referencial y evitar dependencias multivaluadas.
 
 ```mermaid
-graph TD
-    Main[Main.java: Punto de Entrada] --> TaskManager[TaskManager.java: Lógica y Persistencia]
-    Main --> MainFrame[MainFrame.java: Interfaz Swing]
-    MainFrame --> TaskManager
-    TaskManager <--> JSON_Tasks[(data/tasks.json)]
-    TaskManager <--> JSON_Users[(data/users.json)]
-    MainFrame -.-> Models[Modelos: Task, User, Priority, TaskStatus]
-    TaskManager -.-> Models
+erDiagram
+    USERS ||--o{ TASKS : "assigned_user_id"
+    TASK_STATUSES ||--o{ TASKS : "status_id"
+    PRIORITIES ||--o{ TASKS : "priority_id"
+
+    USERS {
+        int id PK
+        string name
+    }
+
+    TASK_STATUSES {
+        int id PK
+        string label
+        string color_hex
+    }
+
+    PRIORITIES {
+        int id PK
+        string label
+        int level
+    }
+
+    TASKS {
+        int id PK
+        string title
+        string description
+        int priority_id FK
+        int status_id FK
+        int assigned_user_id FK
+    }
 ```
 
 ---
 
-## Características Principales
+## 2. Diagrama UML de Clases
 
-- **Tablero Kanban Interactivo**: Clasificación en 3 columnas virtuales (**Por Hacer**, **En Proceso** y **Finalizado**) con botones para avanzar el estado de una tarea.
-- **Gestión de Prioridades**: Organización visual por código de colores (**Alta**: Rojo, **Media**: Naranja/Amarillo, **Baja**: Gris).
-- **Vista por Usuario**: Módulo dedicado para consultar las tareas asignadas a cada integrante, ordenadas de mayor a menor prioridad.
-- **Interacción Ágil**: Creación de usuarios y tareas mediante cuadros de diálogo integrados con `JOptionPane`.
-- **Persistencia Automática**: Guardado y carga en caliente en archivos locales JSON dentro del directorio `data/`.
+La estructura en código orientada a objetos (POO) del sistema mapea el flujo de trabajo de la siguiente manera:
 
----
-
-## Estructura del Código Fuente
-
-```text
-src/main/java/com/taskflow/
-├── Main.java              # Punto de entrada principal y lanzamiento de la GUI
-├── TaskManager.java       # Gestor unificado de tareas, usuarios y persistencia JSON
-├── model/                 # Modelos de datos del dominio
-│   ├── Task.java          # Estructura de una tarea (título, descripción, prioridad, estado, usuario)
-│   ├── User.java          # Estructura de un usuario registrado
-│   ├── Priority.java      # Enumeración de prioridades (Alta, Media, Baja)
-│   └── TaskStatus.java    # Enumeración de estados (Por Hacer, En Proceso, Finalizado)
-└── ui/                    # Capa de presentación gráfica
-    └── MainFrame.java     # Ventana principal Swing de alto contraste con pestañas
+```mermaid
+classDiagram
+    class User {
+        -String id
+        -String name
+    }
+    class TaskStatus {
+        -String id
+        -String label
+        -String colorHex
+    }
+    class Priority {
+        -String id
+        -String label
+        -int level
+    }
+    class Task {
+        -String id
+        -String title
+        -String description
+        -String assignedUserId
+        -Priority priority
+        -TaskStatus status
+    }
+    Task "*" --> "0..1" User : assigned to
+    Task "*" --> "1" Priority : has priority
+    Task "*" --> "1" TaskStatus : has status
 ```
 
 ---
 
-## Compilación y Ejecución
+## 3. Base de Datos (Modelo Físico y Normalización)
 
-### Desde la Terminal
+### Diagrama del Modelo Físico (DrawSQL / DrawMySQL)
+![Modelo Físico en DrawSQL](img/modelo%20fisico.png)
 
-```bash
-# Compilar los archivos fuente dirigiendo los binarios a la carpeta 'out'
-javac -cp "lib/*" -d out src/main/java/com/taskflow/model/*.java src/main/java/com/taskflow/ui/*.java src/main/java/com/taskflow/*.java
+### Normalización (hasta 4NF)
+- **1NF**: Columnas con valores atómicos (sin listas u objetos anidados en campos).
+- **2NF**: No hay dependencias parciales dado que usamos una clave primaria simple (`id`).
+- **3NF**: No hay dependencias transitivas; los datos paramétricos como los colores de los estados o niveles de prioridades están extraídos en sus propias tablas paramétricas (`task_statuses` y `priorities`).
+- **4NF**: Se cumple, ya que no hay dependencias multivaluadas en una sola tabla de enlace (cada tarea tiene máximo un usuario, estado y prioridad).
 
-# Ejecutar la aplicación
-java -cp "out;lib/*" com.taskflow.Main
-```
+### Reconstruir en DrawSQL / DrawMySQL
+Para generar el modelo físico con exactitud:
+1. Abre [DrawSQL](https://drawsql.app/).
+2. Haz clic en **Import from SQL**.
+3. Pega el contenido del script que encontrarás en `database.sql` dentro de este proyecto.
 
-### Mediante Scripts en Windows
-
-- Ejecutar `compile.bat` para realizar la compilación automática.
-- Ejecutar `run.bat` para iniciar el programa.
-
----
-
-## Guía de Exposición para la Presentación Académica
-
-Para defender el código durante la evaluación:
-
-1. **`Main.java`**: "Es el punto de arranque que crea la instancia de `TaskManager` y lanza la interfaz `MainFrame`."
-2. **`TaskManager.java`**: "Administra los datos en memoria, ejecuta las búsquedas con bucles `for` y realiza el almacenamiento automático en JSON mediante Gson."
-3. **`MainFrame.java`**: "Construye la ventana principal en Swing con un `JTabbedPane` para separar el tablero Kanban de la vista por usuario."
+### Conexión Mediante DBeaver
+1. En DBeaver, crea una nueva conexión **MySQL**.
+2. Ingresa `localhost` como servidor y `3306` como puerto.
+3. Conéctate con tu usuario/contraseña (ej. `root`).
+4. Abre el editor SQL y corre el script `database.sql` para crear la base de datos `taskflow_db` y sus tablas.
 
 ---
 
-## Autores y Desarrolladores
+## Ejecutar la Aplicación
 
-Este proyecto ha sido diseñado y desarrollado por:
-
-* **Andrés Guerra**
-* **Diego Mantilla**
-
----
-
-## Licencia
-
-Proyecto desarrollado con fines académicos y educativos. Todos los derechos reservados.
+1. Asegúrate de tener tu servidor MySQL activo (XAMPP, MySQL Installer, o Docker) y ejecutar primero `database.sql`.
+2. Puedes compilar el proyecto usando `compile.bat`.
+3. Ejecútalo mediante `run.bat`.
