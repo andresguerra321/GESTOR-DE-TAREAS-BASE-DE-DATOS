@@ -17,6 +17,8 @@ El proyecto fue construido tomando en cuenta:
 ![Flujo Conceptual](img/image.png)
 
 ### Modelo Entidad-Relación (E-R) / Lógico
+![Diagrama Entidad-Relación](img/plantilla_modeloER.png)
+
 El sistema gestiona Tareas (`Tasks`), Usuarios (`Users`), Estados (`TaskStatus`) y Prioridades (`Priority`). El modelo está diseñado y normalizado hasta la Cuarta Forma Normal (4NF) para asegurar integridad referencial y evitar dependencias multivaluadas.
 
 ```mermaid
