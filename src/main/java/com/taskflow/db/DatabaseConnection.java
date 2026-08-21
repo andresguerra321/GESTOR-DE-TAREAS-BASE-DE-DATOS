@@ -16,19 +16,18 @@ public class DatabaseConnection {
     }
 
     public static Connection getConnection() {
-        if (connection == null) {
-            try {
-                // Registrar el driver explícitamente (opcional en versiones nuevas, pero buena práctica)
+        try {
+            if (connection == null || connection.isClosed()) {
                 Class.forName("com.mysql.cj.jdbc.Driver");
                 connection = DriverManager.getConnection(URL, USER, PASSWORD);
                 System.out.println("Conexión a la base de datos establecida.");
-            } catch (ClassNotFoundException e) {
-                System.err.println("Error: Driver JDBC de MySQL no encontrado.");
-                e.printStackTrace();
-            } catch (SQLException e) {
-                System.err.println("Error: No se pudo conectar a la base de datos MySQL.");
-                e.printStackTrace();
             }
+        } catch (ClassNotFoundException e) {
+            System.err.println("Error: Driver JDBC de MySQL no encontrado.");
+            e.printStackTrace();
+        } catch (SQLException e) {
+            System.err.println("Error: No se pudo conectar a la base de datos MySQL.");
+            e.printStackTrace();
         }
         return connection;
     }
