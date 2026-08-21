@@ -1,7 +1,7 @@
 package com.taskflow;
 
-import com.taskflow.dao.TaskDAO;
-import com.taskflow.dao.UserDAO;
+import com.taskflow.dao.ITaskDAO;
+import com.taskflow.dao.IUserDAO;
 import com.taskflow.model.Priority;
 import com.taskflow.model.Task;
 import com.taskflow.model.TaskStatus;
@@ -15,12 +15,13 @@ import java.util.List;
  * Ahora utiliza el patrón DAO para conectarse a MySQL en lugar de JSON.
  */
 public class TaskManager {
-    private final TaskDAO taskDAO;
-    private final UserDAO userDAO;
+    private final ITaskDAO taskDAO;
+    private final IUserDAO userDAO;
 
-    public TaskManager() {
-        this.taskDAO = new TaskDAO();
-        this.userDAO = new UserDAO();
+    // Inyección de dependencias
+    public TaskManager(ITaskDAO taskDAO, IUserDAO userDAO) {
+        this.taskDAO = taskDAO;
+        this.userDAO = userDAO;
 
         // Si el sistema no tiene usuarios, crear los usuarios por defecto Diego y Guerra
         if (obtenerUsuarios().isEmpty()) {
@@ -53,12 +54,12 @@ public class TaskManager {
     // ==================== OPERACIONES DE USUARIOS ====================
 
     public List<User> obtenerUsuarios() {
-        return userDAO.getAllUsers();
+        return userDAO.getAll();
     }
 
     public User crearUsuario(String nombre) {
         User usuario = new User(nombre);
-        if (userDAO.insertUser(usuario)) {
+        if (userDAO.insert(usuario)) {
             return usuario;
         }
         return null;
@@ -66,26 +67,26 @@ public class TaskManager {
 
     public User obtenerUsuarioPorId(String id) {
         if (id == null) return null;
-        return userDAO.getUserById(id);
+        return userDAO.getById(id);
     }
 
     // ==================== OPERACIONES DE TAREAS ====================
 
     public List<Task> obtenerTareas() {
-        return taskDAO.getAllTasks();
+        return taskDAO.getAll();
     }
 
     public Task crearTarea(String titulo, String descripcion, Priority prioridad, String usuarioId) {
         Task tarea = new Task(titulo, descripcion, prioridad);
         tarea.setAssignedUserId(usuarioId);
-        if (taskDAO.insertTask(tarea)) {
+        if (taskDAO.insert(tarea)) {
             return tarea;
         }
         return null;
     }
 
     public void avanzarEstadoTarea(String tareaId) {
-        Task tarea = taskDAO.getTaskById(tareaId);
+        Task tarea = taskDAO.getById(tareaId);
         if (tarea != null) {
             TaskStatus nextStatus = tarea.getStatus().next();
             taskDAO.updateTaskStatus(tareaId, nextStatus);
@@ -98,7 +99,7 @@ public class TaskManager {
     }
 
     public void eliminarTarea(String tareaId) {
-        taskDAO.deleteTask(tareaId);
+        taskDAO.delete(tareaId);
     }
 
     public List<Task> obtenerTareasPorEstado(TaskStatus estado) {
