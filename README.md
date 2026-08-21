@@ -4,10 +4,36 @@ Este es un sistema de gestión de tareas diferente, rediseñado desde cero para 
 
 ## Arquitectura y Principios Aplicados
 
-El proyecto fue construido tomando en cuenta:
-1. **POO y Abstracciones**: Uso de interfaces DAO (`IGenericDAO`, `ITaskDAO`, `IUserDAO`) para desacoplar la lógica de negocio de la implementación técnica de acceso a datos.
-2. **SOLID (Principio de Inversión de Dependencias)**: El núcleo del sistema (ej. `TaskManager`) no depende de clases concretas, sino de abstracciones (interfaces), lo cual hace al sistema escalable y fácil de mantener.
-3. **JDBC**: Implementación segura de persistencia con bases de datos MySQL, manejando transacciones y cierres de recursos adecuadamente.
+El proyecto fue construido bajo el patrón arquitectónico **MVC (Model - View - Controller)** y principios de ingeniería de software robustos:
+
+```
+                  ┌─────────────────────────────────────┐
+                  │              VISTA (View)           │
+                  │       (com.taskflow.ui.MainFrame)   │
+                  └──────────────────┬──────────────────┘
+                                     │  Eventos / Acciones
+                                     ▼
+                  ┌─────────────────────────────────────┐
+                  │       CONTROLADOR (Controller)      │
+                  │   (com.taskflow.controller.        │
+                  │         TaskController)             │
+                  └──────────────────┬──────────────────┘
+                                     │  CRUD / Negocio
+                                     ▼
+                  ┌─────────────────────────────────────┐
+                  │            MODELO (Model)           │
+                  │ - Entidades (com.taskflow.model)    │
+                  │ - Acceso Datos (com.taskflow.dao)   │
+                  │ - Conexión JDBC (com.taskflow.db)   │
+                  └─────────────────────────────────────┘
+```
+
+1. **Modelo (Model)**: Encapsula las entidades (`Task`, `User`, `Priority`, `TaskStatus`) y la persistencia de datos mediante interfaces DAO e implementaciones JDBC (`TaskDAOImpl`, `UserDAOImpl`, `DatabaseConnection`).
+2. **Vista (View)**: Diseñada en Swing (`MainFrame`) encargada de renderizar la interfaz visual, tableros Kanban y formularios sin acoplamiento a consultas SQL directas.
+3. **Controlador (Controller)**: `TaskController` procesa las peticiones del usuario recibidas desde la Vista, aplica validaciones y orquesta las operaciones CRUD sobre el Modelo.
+4. **POO y Abstracciones**: Uso de interfaces DAO genéricas (`IGenericDAO<T, ID>`, `ITaskDAO`, `IUserDAO`) para desacoplar completamente la lógica.
+5. **SOLID (Inversión de Dependencias)**: El controlador recibe abstracciones por inyección de dependencias en el constructor.
+6. **JDBC**: Conexión eficiente a MySQL con gestión de recursos, sentencias preparadas (*PreparedStatements*) y manejo de transacciones.
 
 ---
 
@@ -74,37 +100,96 @@ erDiagram
 
 ---
 
-## 2. Diagrama UML de Clases
+## 2. Diagrama UML de Clases (Arquitectura MVC + Patrón DAO)
 
-La estructura en código orientada a objetos (POO) del sistema mapea el flujo de trabajo de la siguiente manera:
+La estructura en código orientada a objetos (POO) del sistema mapea el flujo de trabajo separando la Vista, el Controlador y el Modelo:
 
 ```mermaid
 classDiagram
-    class User {
-        -String id
-        -String name
+    %% VISTA
+    class MainFrame {
+        -TaskController taskManager
+        +actualizarTodo()
+        +accionNuevaTarea()
+        +accionNuevoUsuario()
     }
-    class TaskStatus {
-        -String id
-        -String label
-        -String colorHex
+
+    %% CONTROLADOR
+    class TaskController {
+        -ITaskDAO taskDAO
+        -IUserDAO userDAO
+        +TaskController(taskDAO: ITaskDAO, userDAO: IUserDAO)
+        +obtenerTareas() List~Task~
+        +crearTarea(titulo, desc, prioridad, usuarioId) Task
+        +cambiarEstadoTarea(tareaId, nuevoEstado)
+        +eliminarTarea(tareaId)
+        +obtenerUsuarios() List~User~
+        +crearUsuario(nombre) User
     }
-    class Priority {
-        -String id
-        -String label
-        -int level
+
+    %% MODELO - PERSISTENCIA
+    class IGenericDAO~T, ID~ {
+        <<interface>>
+        +getAll() List~T~
+        +getById(id: ID) T
+        +insert(entity: T) boolean
+        +update(entity: T) boolean
+        +delete(id: ID) boolean
     }
+
+    class ITaskDAO {
+        <<interface>>
+        +updateTaskStatus(taskId: String, newStatus: TaskStatus) boolean
+    }
+
+    class IUserDAO {
+        <<interface>>
+    }
+
+    class TaskDAOImpl {
+        +getAll() List~Task~
+        +getById(id: String) Task
+        +insert(task: Task) boolean
+        +update(task: Task) boolean
+        +delete(id: String) boolean
+    }
+
+    class UserDAOImpl {
+        +getAll() List~User~
+        +getById(id: String) User
+        +insert(user: User) boolean
+        +update(user: User) boolean
+        +delete(id: String) boolean
+    }
+
+    %% MODELO - ENTIDADES
     class Task {
         -String id
         -String title
         -String description
-        -String assignedUserId
         -Priority priority
         -TaskStatus status
+        -String assignedUserId
     }
-    Task "*" --> "0..1" User : assigned to
-    Task "*" --> "1" Priority : has priority
-    Task "*" --> "1" TaskStatus : has status
+
+    class User {
+        -String id
+        -String name
+    }
+
+    %% RELACIONES MVC
+    MainFrame --> TaskController : "View -> Controller"
+    TaskController --> ITaskDAO : "Controller -> Model"
+    TaskController --> IUserDAO : "Controller -> Model"
+
+    IGenericDAO <|-- ITaskDAO
+    IGenericDAO <|-- IUserDAO
+    ITaskDAO <|.. TaskDAOImpl
+    IUserDAO <|.. UserDAOImpl
+
+    TaskDAOImpl --> Task
+    UserDAOImpl --> User
+    Task --> User
 ```
 
 ---

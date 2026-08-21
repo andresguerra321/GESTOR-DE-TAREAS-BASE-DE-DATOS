@@ -1,11 +1,33 @@
-# Diagramas UML del Sistema TaskFlow
+# Diagramas UML del Sistema TaskFlow (Arquitectura MVC)
 
-## 1. Diagrama de Clases
+## 1. Diagrama de Clases (MVC + DAO Pattern)
 
-Este diagrama representa la estructura de clases del sistema, modelando las entidades de dominio y el desacoplamiento mediante interfaces DAO.
+Este diagrama representa la estructura de clases del sistema bajo la arquitectura **Modelo - Vista - Controlador (MVC)**, modelando las entidades de dominio, el controlador y el desacoplamiento mediante interfaces DAO.
 
 ```mermaid
 classDiagram
+    %% VISTA
+    class MainFrame {
+        -TaskController controller
+        +actualizarTodo()
+        +accionNuevaTarea()
+        +accionNuevoUsuario()
+    }
+
+    %% CONTROLADOR
+    class TaskController {
+        -ITaskDAO taskDAO
+        -IUserDAO userDAO
+        +TaskController(taskDAO: ITaskDAO, userDAO: IUserDAO)
+        +obtenerTareas() List~Task~
+        +crearTarea(titulo, desc, prioridad, usuarioId) Task
+        +cambiarEstadoTarea(tareaId, nuevoEstado)
+        +eliminarTarea(tareaId)
+        +obtenerUsuarios() List~User~
+        +crearUsuario(nombre) User
+    }
+
+    %% MODELO - PERSISTENCIA (DAOs)
     class IGenericDAO~T, ID~ {
         <<interface>>
         +getAll() List~T~
@@ -41,18 +63,7 @@ classDiagram
         +delete(id: String) boolean
     }
 
-    class TaskManager {
-        -taskDAO: ITaskDAO
-        -userDAO: IUserDAO
-        +TaskManager(taskDAO: ITaskDAO, userDAO: IUserDAO)
-        +obtenerTareas() List~Task~
-        +crearTarea(titulo, desc, prioridad, usuarioId) Task
-        +cambiarEstadoTarea(tareaId, nuevoEstado)
-        +eliminarTarea(tareaId)
-        +obtenerUsuarios() List~User~
-        +crearUsuario(nombre) User
-    }
-
+    %% MODELO - ENTIDADES
     class Task {
         -String id
         -String title
@@ -81,12 +92,19 @@ classDiagram
         DONE
     }
 
+    %% RELACIONES MVC
+    MainFrame --> TaskController : "View -> Controller"
+    TaskController --> ITaskDAO : "Controller -> Model"
+    TaskController --> IUserDAO : "Controller -> Model"
+
     IGenericDAO <|-- ITaskDAO
     IGenericDAO <|-- IUserDAO
     ITaskDAO <|.. TaskDAOImpl
     IUserDAO <|.. UserDAOImpl
-    TaskManager --> ITaskDAO
-    TaskManager --> IUserDAO
+
+    TaskDAOImpl --> Task
+    UserDAOImpl --> User
+
     Task --> Priority
     Task --> TaskStatus
     Task --> User
