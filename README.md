@@ -114,8 +114,18 @@ Para generar el modelo físico con exactitud:
 
 ---
 
+## 4. Documentación Complementaria
+Para mayor detalle técnico, consulta los documentos especializados en la carpeta `docs/`:
+* [Diagramas UML de Clases y Secuencia](docs/UML_DIAGRAMS.md)
+* [Justificación de Normalización hasta 4NF](docs/DATABASE_NORMALIZATION.md)
+* [Guía de Configuración y Conexión en DBeaver](docs/DBEAVER_SETUP.md)
+* [Modelo Relacional Formal y Notación DBML](docs/RELATIONAL_MODEL.md)
+
+---
+
 ## Ejecutar la Aplicación
 
 1. Asegúrate de tener tu servidor MySQL activo (XAMPP, MySQL Installer, o Docker) y ejecutar primero `database.sql`.
 2. Puedes compilar el proyecto usando `compile.bat`.
 3. Ejecútalo mediante `run.bat`.
+
