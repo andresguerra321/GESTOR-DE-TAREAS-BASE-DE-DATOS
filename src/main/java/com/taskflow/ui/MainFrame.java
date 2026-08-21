@@ -1,6 +1,6 @@
 package com.taskflow.ui;
 
-import com.taskflow.TaskManager;
+import com.taskflow.controller.TaskController;
 import com.taskflow.model.Priority;
 import com.taskflow.model.Task;
 import com.taskflow.model.TaskStatus;
@@ -11,11 +11,11 @@ import java.awt.*;
 import java.util.List;
 
 /**
- * Ventana Principal de TaskFlow.
+ * Ventana Principal de TaskFlow (Capa Vista / View en MVC).
  * Diseñada en Swing con paleta clara de alto contraste, texto 100% legible y fácil de explicar.
  */
 public class MainFrame extends JFrame {
-    private final TaskManager taskManager;
+    private final TaskController taskManager;
 
     private JTabbedPane tabbedPane;
     private JPanel kanbanPanel;
@@ -50,7 +50,7 @@ public class MainFrame extends JFrame {
     private static final Color BTN_GREEN = new Color(16, 185, 129);      // Verde primario #10B981
     private static final Color BTN_RED = new Color(239, 68, 68);         // Rojo eliminar #EF4444
 
-    public MainFrame(TaskManager taskManager) {
+    public MainFrame(TaskController taskManager) {
         this.taskManager = taskManager;
 
         setTitle("TaskFlow — Gestor de Tareas");
