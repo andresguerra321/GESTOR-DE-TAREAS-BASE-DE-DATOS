@@ -19,6 +19,24 @@ El proyecto fue construido tomando en cuenta:
 ### Modelo Entidad-Relación (E-R) / Lógico
 ![Diagrama Entidad-Relación](img/plantilla_modeloER.png)
 
+#### Interpretación y Geometría del Modelo E-R (Notación Chen)
+El diagrama superior utiliza la **Notación de Chen** tradicional, donde cada figura geométrica cumple un propósito semántico en el modelado de datos:
+
+| Figura Geométrica | Concepto E-R | Elementos en el Diagrama | Descripción Semántica |
+| :--- | :--- | :--- | :--- |
+| 🟩 **Rectángulos** | **Entidades** | `Person`, `TypePerson`, `Team`, `Task`, `StatusTask` | Representan los objetos reales o conceptuales independientes sobre los cuales se almacena información en el sistema. |
+| 🔶 **Rombos** | **Relaciones** | `tiene_tipo`, `pertenece_a`, `asignado_a`, `tiene_estado` | Representan las asociaciones, verbos o dependencias lógicas entre dos o más entidades. |
+| ⚪ **Círculos / Elipses** | **Atributos** | `id`, `name`, `username`, `title`, `description`, `priority` | Representan las propiedades o características atómicas que describen a cada entidad. |
+| ➖ **Líneas de Enlace** | **Conexiones** | Enlaces entidad-relación y entidad-atributo | Definen la pertenencia de los atributos a sus entidades y la participación en las relaciones del negocio. |
+
+##### Detalle de las Relaciones del Sistema:
+1. **`Person` — `tiene_tipo` — `TypePerson`**: Cada persona u operario posee un tipo o rol específico dentro del sistema.
+2. **`Person` — `pertenece_a` — `Team`**: Las personas se agrupan en equipos o departamentos de trabajo.
+3. **`Person` — `asignado_a` — `Task`**: Una tarea es asignada directamente a una persona para su ejecución y seguimiento.
+4. **`Task` — `tiene_estado` — `StatusTask`**: Cada tarea tiene asociado un estado puntual en el ciclo de vida de flujo (`TODO`, `IN_PROGRESS`, `DONE`).
+
+---
+
 El sistema gestiona Tareas (`Tasks`), Usuarios (`Users`), Estados (`TaskStatus`) y Prioridades (`Priority`). El modelo está diseñado y normalizado hasta la Cuarta Forma Normal (4NF) para asegurar integridad referencial y evitar dependencias multivaluadas.
 
 ```mermaid
